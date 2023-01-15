@@ -11,5 +11,5 @@ fn main() {
     //list_topics(&client);
     let mut kafka_consumer: Consumer = consumer::create_consumer(client, &config);
 
-    consumer::print_messages(&mut kafka_consumer);
+    consumer::print_messages(&mut kafka_consumer, false);
 }

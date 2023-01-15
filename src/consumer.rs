@@ -14,30 +14,50 @@ pub fn create_consumer(client: KafkaClient, config: &KafkaConfig) -> Consumer {
     consumer
 }
 
-pub fn print_messages(kafka_consumer: &mut Consumer) {
-    let message_set: MessageSets = kafka_consumer.poll().unwrap_or_else(|e| {
-        panic!("Failed to poll: {}", e);
-    });
+/// Print the messages from the Kafka server and optionally consume them
+///
+/// # Arguments
+///
+/// * `kafka_consumer` - A Kafka Consumer struct.
+/// * `consume_message` - A boolean indicating whether to consume the messages or not.
+///
+/// # Examples
+///
+/// In the simplest case, it just prints out the messages, each one looking like this
+///
+/// ~~~text
+/// Message Topic: "test-topic"
+/// Message: 5
+/// Message Key: "test"
+/// Message Value: "{\"_id\":\"63c184fcdbc7219b330870d7\",\"crmId\":\"355e0213-4ce5-4c74-8a8c-e96558f576a1\",\"isActive\":true,\"age\":55,\"name\":\"Hurley Meyer\",\"gender\":\"male\",\"company\":\"ONTAGENE\",\"email\":\"hurleymeyer@ontagene.com\"}"
+/// ~~~
+pub fn print_messages(kafka_consumer: &mut Consumer, consume_message: bool) {
 
-    let mut message_iterator: MessageSetsIter = message_set.iter();
-    println!("Printing messages... {}", message_iterator.count() );
-    let message_set: Option<MessageSet> = message_iterator.next();
-    match message_set {
-        Some(m) => {
-            println!("Message Topic: {:?}", m.topic());
-            println!("Message: {:?}", m.messages().len());
-            for message in m.messages() {
-                println!(
-                    "Found {} messages in topic {}",
-                    m.messages().len(),
-                    m.topic()
-                );
-                let m_key = str::from_utf8(message.key).unwrap();
-                let m_value = str::from_utf8(message.value).unwrap();
-                println!("Message Key: {:?}", m_key);
-                println!("Message Value: {:?}", m_value);
+    'messageLoop: loop {
+        let message_sets: MessageSets = kafka_consumer.poll().unwrap_or_else(|e| {
+            panic!("Failed to poll: {}", e);
+        });
+
+        if message_sets.is_empty() {
+            println!("Message sets exausted... no more messages to retrieve!");
+            break 'messageLoop;
+        }
+
+        for message_group in message_sets.iter() {
+            println!("Message Topic: {:?}", message_group.topic());
+            println!("Message: {:?}", message_group.messages().len());
+
+            for message in message_group.messages() {
+                    let m_key = str::from_utf8(message.key).unwrap();
+                    let m_value = str::from_utf8(message.value).unwrap();
+                    println!("Message Key: {:?}", m_key);
+                    println!("Message Value: {:?}", m_value);
+             }
+            if consume_message {
+                kafka_consumer.consume_messageset(message_group).unwrap_or_else(|e| {
+                    panic!("Failed to consume message: {}", e);
+                });
+            }
             }
         }
-        None => println!("No message"),
     }
-}
