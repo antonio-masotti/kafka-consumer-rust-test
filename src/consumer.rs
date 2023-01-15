@@ -1,11 +1,12 @@
-use crate::client::KafkaConfig;
+use crate::client::{init_kafka_client, KafkaConfig};
 use kafka::client::{FetchOffset, KafkaClient};
 use kafka::consumer::{Consumer, MessageSets};
-use std::str;
-use serde::ser::StdError;
 use kafka_consumer_rust::TestMessage;
+use serde::ser::StdError;
+use std::str;
 
-pub fn create_consumer(client: KafkaClient, config: &KafkaConfig) -> Consumer {
+pub fn create_consumer(config: &KafkaConfig) -> Consumer {
+    let client = init_kafka_client(&config);
     let consumer: Consumer = Consumer::from_client(client)
         .with_topic(config.read_topic.clone().to_owned())
         .with_fallback_offset(FetchOffset::Earliest)
@@ -34,7 +35,6 @@ pub fn create_consumer(client: KafkaClient, config: &KafkaConfig) -> Consumer {
 /// Message Value: "{\"_id\":\"63c184fcdbc7219b330870d7\",\"crmId\":\"355e0213-4ce5-4c74-8a8c-e96558f576a1\",\"isActive\":true,\"age\":55,\"name\":\"Hurley Meyer\",\"gender\":\"male\",\"company\":\"ONTAGENE\",\"email\":\"hurleymeyer@ontagene.com\"}"
 /// ~~~
 pub fn print_messages(kafka_consumer: &mut Consumer, consume_message: bool) {
-
     'messageLoop: loop {
         let message_sets: MessageSets = kafka_consumer.poll().unwrap_or_else(|e| {
             panic!("Failed to poll: {}", e);
@@ -50,25 +50,28 @@ pub fn print_messages(kafka_consumer: &mut Consumer, consume_message: bool) {
             println!("Message: {:?}", message_group.messages().len());
 
             for message in message_group.messages() {
-                    let m_key = str::from_utf8(message.key).unwrap();
-                    let m_value = str::from_utf8(message.value).unwrap();
-                    println!("Message Key: {:?}", m_key);
-                    println!("Message Value: {:?}", m_value);
-             }
-            if consume_message {
-                kafka_consumer.consume_messageset(message_group).unwrap_or_else(|e| {
-                    panic!("Failed to consume message: {}", e);
-                });
+                let m_key = str::from_utf8(message.key).unwrap();
+                let m_value = str::from_utf8(message.value).unwrap();
+                println!("Message Key: {:?}", m_key);
+                println!("Message Value: {:?}", m_value);
             }
+            if consume_message {
+                kafka_consumer
+                    .consume_messageset(message_group)
+                    .unwrap_or_else(|e| {
+                        panic!("Failed to consume message: {}", e);
+                    });
             }
         }
     }
-
+}
 
 /// Fetch the messages from the Kafka server and optionally consume them.
 /// Once fetched, the messages are serialized into a vector of [TestMessage](kafka-consumer-rust::client::TestMessage) structs.
-pub fn fetch_messages(kafka_consumer: &mut Consumer, consume_message: bool) -> Result<Vec<TestMessage>, Box<dyn StdError>>
-{
+pub fn fetch_messages(
+    kafka_consumer: &mut Consumer,
+    consume_message: bool,
+) -> Result<Vec<TestMessage>, Box<dyn StdError>> {
     let mut results: Vec<TestMessage> = Vec::new();
     'messageLoop: loop {
         let message_sets: MessageSets = kafka_consumer.poll()?;
@@ -79,7 +82,6 @@ pub fn fetch_messages(kafka_consumer: &mut Consumer, consume_message: bool) -> R
         }
 
         for message_group in message_sets.iter() {
-
             for message in message_group.messages() {
                 let m_key = str::from_utf8(message.key).unwrap();
                 let m_value = str::from_utf8(message.value).unwrap();
@@ -88,12 +90,13 @@ pub fn fetch_messages(kafka_consumer: &mut Consumer, consume_message: bool) -> R
                 results.push(test_message);
             }
             if consume_message {
-                kafka_consumer.consume_messageset(message_group).unwrap_or_else(|e| {
-                    panic!("Failed to consume message: {}", e);
-                });
+                kafka_consumer
+                    .consume_messageset(message_group)
+                    .unwrap_or_else(|e| {
+                        panic!("Failed to consume message: {}", e);
+                    });
             }
         }
     }
     Ok(results)
 }
-
