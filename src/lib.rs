@@ -2,7 +2,11 @@ use kafka::client::KafkaClient;
 use std::fmt::{Display, Formatter};
 
 ///! # Kafka Client
-/// This is a simple client for the Kafka protocol, to be used in the context of the Online Delivery Project.
+///! This is a simple client for the Kafka protocol, to be used in the context of the Online Delivery Project.
+
+// ----------------------------------------------------------------
+// -------------------------- GENERAL DATA STRUCTURE --------------
+// ----------------------------------------------------------------
 
 /// General settings for the Kafka client.
 pub struct KafkaConfig {
@@ -78,6 +82,10 @@ impl Display for KafkaConfig {
     }
 }
 
+// ----------------------------------------------------------------
+// --------------------- CLIENT FUNCTIONS -------------------------
+// ----------------------------------------------------------------
+
 /// Setup main variables for [KafkaConfig]
 ///
 /// This function will populate and return the variables for
@@ -93,10 +101,10 @@ impl Display for KafkaConfig {
 pub fn setup_variables() -> (Vec<String>, String, String) {
     let kafka_server = vec![std::env::var("KAFKA_SERVER").unwrap_or("localhost:9092".to_string())];
     let kafka_read_topic = std::env::var("KAFKA_READ_TOPIC").unwrap_or("test-topic".to_string());
-    let kafka_write_topic = std::env::var("KAFKA_WRITE_TOPIC").unwrap_or("test-producer".to_string());
+    let kafka_write_topic =
+        std::env::var("KAFKA_WRITE_TOPIC").unwrap_or("test-producer".to_string());
     (kafka_server, kafka_read_topic, kafka_write_topic)
 }
-
 
 /// Create a new Kafka client and load the metadata.
 ///
@@ -109,6 +117,18 @@ pub fn init_kafka_client(config_params: &KafkaConfig) -> KafkaClient {
         panic!("Failed to load metadata: {}", e);
     });
     client
+}
+
+/// Simply list the available topics on the Kafka server.
+///
+/// # Arguments
+///
+/// * `client` - A KafkaClient struct.
+///
+pub fn list_topics(client: &mut KafkaClient) {
+    for topic in client.topics() {
+        println!("Topic: {:?}", topic);
+    }
 }
 
 // ----------------------------------------------------------------
@@ -150,9 +170,21 @@ mod tests {
     #[test]
     fn test_setup_variables_with_defaults() {
         let (kafka_server, kafka_read_topic, kafka_write_topic) = super::setup_variables();
-        assert_eq!(kafka_server, vec!["localhost:9092".to_string()], "Kafka server should be localhost:9092");
-        assert_eq!(kafka_read_topic, "test-topic".to_string(), "Kafka read topic should be test-topic");
-        assert_eq!(kafka_write_topic, "test-producer".to_string(), "Kafka write topic should be test-producer");
+        assert_eq!(
+            kafka_server,
+            vec!["localhost:9092".to_string()],
+            "Kafka server should be localhost:9092"
+        );
+        assert_eq!(
+            kafka_read_topic,
+            "test-topic".to_string(),
+            "Kafka read topic should be test-topic"
+        );
+        assert_eq!(
+            kafka_write_topic,
+            "test-producer".to_string(),
+            "Kafka write topic should be test-producer"
+        );
     }
 
     #[test]
@@ -161,9 +193,24 @@ mod tests {
         std::env::set_var("KAFKA_READ_TOPIC", "test-from-env");
         std::env::set_var("KAFKA_WRITE_TOPIC", "test-producer-from-env");
         let (kafka_server, kafka_read_topic, kafka_write_topic) = super::setup_variables();
-        assert_eq!(kafka_server, vec!["localhost:9082".to_string()], "KAFKA_SERVER should be localhost:9082, but is {}", kafka_server[0]);
-        assert_eq!(kafka_read_topic, "test-from-env".to_string(), "KAFKA_READ_TOPIC should be test-from-env, but is {}", kafka_read_topic);
-        assert_eq!(kafka_write_topic, "test-producer-from-env".to_string(), "KAFKA_WRITE_TOPIC should be test-producer-from-env, but is {}", kafka_write_topic);
+        assert_eq!(
+            kafka_server,
+            vec!["localhost:9082".to_string()],
+            "KAFKA_SERVER should be localhost:9082, but is {}",
+            kafka_server[0]
+        );
+        assert_eq!(
+            kafka_read_topic,
+            "test-from-env".to_string(),
+            "KAFKA_READ_TOPIC should be test-from-env, but is {}",
+            kafka_read_topic
+        );
+        assert_eq!(
+            kafka_write_topic,
+            "test-producer-from-env".to_string(),
+            "KAFKA_WRITE_TOPIC should be test-producer-from-env, but is {}",
+            kafka_write_topic
+        );
 
         std::env::remove_var("KAFKA_SERVER");
         std::env::remove_var("KAFKA_READ_TOPIC");

@@ -1,5 +1,5 @@
 # Playground for a kafka client in rust
-![Tests](https://github.com/antonio-masotti/kafka-consumer-rust-test/actions/workflows/automated_tests.yml/badge.svg?branch=main)
+![Tests](https://github.com/antonio-masotti/kafka-consumer-rust-test/actions/workflows/automated_tests.yml/badge.svg)
 
 
 This is a playground for a kafka client in rust. It is not intended to be used in production, it's simply a proof of concept.
