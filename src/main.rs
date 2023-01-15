@@ -1,10 +1,11 @@
-use kafka_consumer_rust::KafkaConfig;
+use kafka_consumer_rust::{init_kafka_client, KafkaConfig, setup_variables};
+use kafka::client::KafkaClient;
 
 fn main() {
-    let kafka_server: Vec<String> = vec!["localhost:9092".to_string()];
-    let kafka_read_topic: String = String::from("test-topic");
-    let kafka_write_topic: String = String::from("test-producer");
+    let (kafka_server, kafka_read_topic, kafka_write_topic) = setup_variables();
 
     let config = KafkaConfig::new(&kafka_server, &kafka_read_topic, &kafka_write_topic);
-    println!("{}", config);
+    let _client: KafkaClient = init_kafka_client(&config);
+
 }
+
