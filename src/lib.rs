@@ -12,7 +12,6 @@ pub struct TestMessage {
     pub company: String,
     pub gender: String,
     pub email: String,
-    pub retrieve_timestamp: i32,
 }
 
 impl Display for TestMessage {
