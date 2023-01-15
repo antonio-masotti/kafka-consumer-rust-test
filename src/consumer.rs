@@ -1,5 +1,5 @@
 use crate::client::{init_kafka_client, KafkaConfig};
-use kafka::client::{FetchOffset, KafkaClient};
+use kafka::client::FetchOffset;
 use kafka::consumer::{Consumer, MessageSets};
 use kafka_consumer_rust::TestMessage;
 use serde::ser::StdError;

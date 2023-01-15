@@ -14,6 +14,30 @@ pub struct TestMessage {
     pub email: String,
 }
 
+impl TestMessage {
+    /// Utility function to parse a struct of type [TestMessage] into a valid JSON string.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - A reference to the struct of type [TestMessage].
+    ///
+    /// # Returns
+    ///
+    /// A JSON string representing the struct of type [TestMessage].
+    ///
+    /// # Examples
+    ///
+    /// ~~~text
+    ///{"_id":"63c184fcdbc7219b330870d7","crmId":"355e0213-4ce5-4c74-8a8c-e96558f576a1","isActive":true,"age":55,"name":"Hurley Meyer","company":"ONTAGENE","gender":"male","email":"hurleymeyer@ontagene.com"}
+    /// ~~~
+    pub fn to_json(&self) -> String {
+        let json_string = serde_json::to_string(&self).unwrap_or_else(|e| {
+            panic!("Failed to parse message to JSON: {}", e);
+        });
+        json_string
+    }
+}
+
 impl Display for TestMessage {
     /// Display function for the TestMessage struct. Allows to print out the struct.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

@@ -1,6 +1,6 @@
 use crate::client;
 use crate::client::KafkaConfig;
-use kafka::client::{KafkaClient, RequiredAcks};
+use kafka::client::RequiredAcks;
 use kafka::error::Error as KafkaError;
 use kafka::producer::{Producer, Record};
 use kafka_consumer_rust::TestMessage;
@@ -30,6 +30,8 @@ pub fn push_message(
     let topic = &config.write_topic;
     let record = Record::from_key_value(topic, key, message);
     producer.send(&record)?;
+
+    println!("Message sent to topic: {}", topic);
 
     Ok(())
 }

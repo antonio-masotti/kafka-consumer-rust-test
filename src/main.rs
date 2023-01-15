@@ -1,10 +1,10 @@
-use kafka::client::KafkaClient;
 use kafka::consumer::Consumer;
 use kafka::producer::Producer;
 
-mod client;
-mod consumer;
-mod producer;
+mod api;
+mod client; // <-- This module contains the general configs for the client and some unit tests
+mod consumer; // <-- This module contains the consumer logic and some unit tests
+mod producer; // <-- This module contains the producer logic // <-- This module contains the API logic to test the POST Request
 
 fn main() {
     let config = client::KafkaConfig::new();
@@ -17,7 +17,12 @@ fn main() {
 
     let mut counter = 0;
     for message in messages {
-        println!("Message: {}", message);
+        //println!("Message: {}", message);
+
+        let json_string = message.to_json();
+        //println!("JSON: {}", json_string);
+
+        api::send_request(json_string);
 
         // Resend to another topic (Just testing the producer part)
         let key = format!("test-key-{}", counter).to_string();
