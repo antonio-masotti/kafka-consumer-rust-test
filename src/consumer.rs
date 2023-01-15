@@ -20,6 +20,7 @@ pub fn print_messages(kafka_consumer: &mut Consumer) {
     });
 
     let mut message_iterator: MessageSetsIter = message_set.iter();
+    println!("Printing messages... {}", message_iterator.count() );
     let message_set: Option<MessageSet> = message_iterator.next();
     match message_set {
         Some(m) => {
