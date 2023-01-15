@@ -2,8 +2,8 @@
 // ----------------- GENERAL CLIENT DATA MODEL---------------------
 // ----------------------------------------------------------------
 
-use std::fmt::Display;
 use kafka::client::KafkaClient;
+use std::fmt::Display;
 
 /// General settings for the Kafka client.
 pub struct KafkaConfig {
@@ -26,7 +26,7 @@ impl KafkaConfig {
     ///
     /// ```
     /// use kafka_consumer_rust::KafkaConfig;
-    /// let config = KafkaConfig::new(
+    /// let config = KafkaConfig::new_with_values(
     ///    &vec!["localhost:9092".to_string()],
     ///   &"test-read".to_string(),
     ///  &"test-write".to_string(),
@@ -36,12 +36,23 @@ impl KafkaConfig {
     /// assert_eq!(config.write_topic, "test-write".to_string());
     ///
     /// ```
-    pub fn new(servers: &Vec<String>, read_topic: &String, write_topic: &String) -> KafkaConfig {
+    pub fn new_with_values(
+        servers: &Vec<String>,
+        read_topic: &String,
+        write_topic: &String,
+    ) -> KafkaConfig {
         KafkaConfig {
             brokers: servers.clone(),
             read_topic: read_topic.clone(),
             write_topic: write_topic.clone(),
         }
+    }
+
+    pub fn new() -> KafkaConfig {
+        let (kafka_server, kafka_read_topic, kafka_write_topic) = setup_variables();
+        let config =
+            KafkaConfig::new_with_values(&kafka_server, &kafka_read_topic, &kafka_write_topic);
+        config
     }
 }
 
@@ -69,15 +80,16 @@ impl Display for KafkaConfig {
     ///     write_topic: test-producer
     /// ```
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "KafkaConfig with:
+        write!(
+            f,
+            "KafkaConfig with:
                 brokers: {:?},\n \
                 read_topic: {},\n \
                 write_topic: {}\n",
-                 self.brokers, self.read_topic, self.write_topic)
+            self.brokers, self.read_topic, self.write_topic
+        )
     }
 }
-
-
 
 // ----------------------------------------------------------------
 // --------------------- CLIENT FUNCTIONS -------------------------
@@ -122,7 +134,7 @@ pub fn init_kafka_client(config_params: &KafkaConfig) -> KafkaClient {
 ///
 /// * `client` - A KafkaClient struct.
 ///
-pub fn list_topics(client: &mut KafkaClient) {
+pub fn list_topics(client: &KafkaClient) {
     for topic in client.topics() {
         println!("Topic: {:?}", topic);
     }
@@ -138,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_kafka_config() {
-        let config = KafkaConfig::new(
+        let config = KafkaConfig::new_with_values(
             &vec!["localhost:9092".to_string()],
             &"test-read".to_string(),
             &"test-write".to_string(),
@@ -150,17 +162,13 @@ mod tests {
 
     #[test]
     fn test_kafka_config_display() {
-        let config = KafkaConfig::new(
-            &vec!["localhost:9092".to_string()],
-            &"test-read".to_string(),
-            &"test-write".to_string(),
-        );
+        let config = KafkaConfig::new();
         assert_eq!(
             format!("{}", config),
             "KafkaConfig with:
                 brokers: [\"localhost:9092\"],\n \
-                read_topic: test-read,\n \
-                write_topic: test-write\n"
+                read_topic: test-topic,\n \
+                write_topic: test-producer\n"
         );
     }
 

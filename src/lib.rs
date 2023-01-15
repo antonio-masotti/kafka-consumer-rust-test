@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 /// Data model for the messages received or sent to Kafka
 #[derive(Serialize, Deserialize)]
@@ -17,12 +17,16 @@ pub struct TestMessage {
 impl Display for TestMessage {
     /// Display function for the TestMessage struct. Allows to print out the struct.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Test Message from Kafka with these data: \n\
+        write!(
+            f,
+            "Test Message from Kafka with these data: \n\
         ID: {}\n\
         CRM_ID: {}\n\
         Fullname: {}\n
         Company: {}\n\
-        ", self._id, self.crmId, self.name, self.company)
+        ",
+            self._id, self.crmId, self.name, self.company
+        )
     }
 }
 
