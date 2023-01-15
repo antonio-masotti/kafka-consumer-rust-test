@@ -1,7 +1,9 @@
 use crate::client::KafkaConfig;
 use kafka::client::{FetchOffset, KafkaClient};
-use kafka::consumer::{Consumer, MessageSet, MessageSets, MessageSetsIter};
+use kafka::consumer::{Consumer, MessageSets};
 use std::str;
+use serde::ser::StdError;
+use kafka_consumer_rust::TestMessage;
 
 pub fn create_consumer(client: KafkaClient, config: &KafkaConfig) -> Consumer {
     let consumer: Consumer = Consumer::from_client(client)
@@ -61,3 +63,37 @@ pub fn print_messages(kafka_consumer: &mut Consumer, consume_message: bool) {
             }
         }
     }
+
+
+/// Fetch the messages from the Kafka server and optionally consume them.
+/// Once fetched, the messages are serialized into a vector of [TestMessage](kafka-consumer-rust::client::TestMessage) structs.
+pub fn fetch_messages(kafka_consumer: &mut Consumer, consume_message: bool) -> Result<Vec<TestMessage>, Box<dyn StdError>>
+{
+    let mut results: Vec<TestMessage> = Vec::new();
+    'messageLoop: loop {
+        let message_sets: MessageSets = kafka_consumer.poll()?;
+
+        if message_sets.is_empty() {
+            println!("Message sets exausted... no more messages to retrieve!");
+            break 'messageLoop;
+        }
+
+        for message_group in message_sets.iter() {
+
+            for message in message_group.messages() {
+                let m_key = str::from_utf8(message.key).unwrap();
+                let m_value = str::from_utf8(message.value).unwrap();
+
+                let test_message: TestMessage = serde_json::from_str(m_value)?;
+                results.push(test_message);
+            }
+            if consume_message {
+                kafka_consumer.consume_messageset(message_group).unwrap_or_else(|e| {
+                    panic!("Failed to consume message: {}", e);
+                });
+            }
+        }
+    }
+    Ok(results)
+}
+

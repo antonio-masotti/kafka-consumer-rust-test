@@ -22,7 +22,7 @@ impl Display for TestMessage {
             "Test Message from Kafka with these data: \n\
         ID: {}\n\
         CRM_ID: {}\n\
-        Fullname: {}\n
+        Fullname: {}\n\
         Company: {}\n\
         ",
             self._id, self.crmId, self.name, self.company
