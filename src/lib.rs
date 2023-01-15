@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use kafka::client::KafkaClient;
+use std::fmt::{Display, Formatter};
 
 ///! # Kafka Client
 /// This is a simple client for the Kafka protocol, to be used in the context of the Online Delivery Project.
@@ -91,8 +91,6 @@ pub fn init_kafka_client(config_params: &KafkaConfig) -> KafkaClient {
     client
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use crate::KafkaConfig;
@@ -116,9 +114,12 @@ mod tests {
             &"test-read".to_string(),
             &"test-write".to_string(),
         );
-        assert_eq!(format!("{}", config), "KafkaConfig with:\n \
+        assert_eq!(
+            format!("{}", config),
+            "KafkaConfig with:\n \
                 brokers: [\"localhost:9092\"],\n \
                 read_topic: test-read,\n \
-                write_topic: test-write\n");
+                write_topic: test-write\n"
+        );
     }
 }
